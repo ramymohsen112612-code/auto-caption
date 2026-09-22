@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CaptionAI - توليد كابشن تلقائي بالذكاء الاصطناعي</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+  <link rel="stylesheet" href="css/massageadmin.css">
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+</head>
+<body>
+  <!-- Auth Overlay -->
+  <div class="auth-overlay" id="authOverlay">
+    <div class="auth-container">
+      <div class="auth-box">
+        <div class="auth-logo">
+          <div class="logo-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+              <path d="M2 17l10 5 10-5"/>
+              <path d="M2 12l10 5 10-5"/>
+            </svg>
+          </div>
+          <span class="logo-text">Caption<span class="logo-accent">AI</span></span>
+        </div>
+        
+        <div class="auth-tabs">
+          <button class="auth-tab active" data-tab="login">تسجيل الدخول</button>
+          <button class="auth-tab" data-tab="register">إنشاء حساب</button>
+        </div>
+
+        <form class="auth-form" id="loginForm">
+          <div class="form-group">
+            <label>البريد الإلكتروني</label>
+            <input type="email" id="loginEmail" placeholder="your@email.com" required dir="ltr">
+          </div>
+          <div class="form-group">
+            <label>كلمة المرور</label>
+            <input type="password" id="loginPassword" placeholder="••••••••" required>
+          </div>
+          <button type="submit" class="auth-submit">
+            <span class="spinner-small" id="loginSpinner" style="display:none;"></span>
+            <span id="loginBtnText">دخول</span>
+          </button>
+          <p class="auth-error" id="loginError"></p>
+        </form>
+
+        <form class="auth-form" id="registerForm" style="display:none;">
+          <div class="form-group">
+            <label>الاسم الكامل</label>
+            <input type="text" id="regName" placeholder="محمد أحمد" required>
+          </div>
+          <div class="form-group">
+            <label>البريد الإلكتروني</label>
+            <input type="email" id="regEmail" placeholder="your@email.com" required dir="ltr">
+          </div>
+          <div class="form-group">
+            <label>كلمة المرور</label>
+            <input type="password" id="regPassword" placeholder="8 أحرف على الأقل" required minlength="8">
+          </div>
+          <button type="submit" class="auth-submit">
+            <span class="spinner-small" id="regSpinner" style="display:none;"></span>
+            <span id="regBtnText">إنشاء الحساب</span>
+          </button>
+          <p class="auth-error" id="regError"></p>
+        </form>
+                <!-- Google Sign In -->
+        <div class="auth-divider">
+          <span>أو</span>
+        </div>
+        <button type="button" class="google-btn" id="googleBtn">
+          <span class="google-icon">
+            <svg viewBox="0 0 24 24">
+              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/>
+              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+            </svg>
+          </span>
+          <span class="google-text">الدخول بحساب Google</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Floating Background Shapes -->
+  <div class="bg-shapes">
+    <div class="shape shape-1"></div>
+    <div class="shape shape-2"></div>
+    <div class="shape shape-3"></div>
+    <div class="shape shape-4"></div>
+  </div>
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-brand">
+        <div class="logo-icon small">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+            <path d="M2 17l10 5 10-5"/>
+          </svg>
+        </div>
+        <span class="logo-text">Caption<span class="logo-accent">AI</span></span>
+      </div>
+      <button class="sidebar-close" id="sidebarClose">✕</button>
+    </div>
+
+    <div class="sidebar-user" id="sidebarUser">
+      <div class="user-avatar" id="userAvatar">👤</div>
+      <div class="user-info">
+        <span class="user-name" id="userName">زائر</span>
+        <span class="user-email" id="userEmail">-</span>
+      </div>
+    </div>
+
+    <div class="sidebar-stats">
+      <div class="sidebar-stat">
+        <span class="ss-num" id="statUploads">0</span>
+        <span class="ss-label">ملف</span>
+      </div>
+      <div class="sidebar-stat">
+        <span class="ss-num" id="statTime">0د</span>
+        <span class="ss-label">استخدام</span>
+      </div>
+      <div class="sidebar-stat">
+        <span class="ss-num" id="statSize">0MB</span>
+        <span class="ss-label">الحجم</span>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <h3 class="sidebar-title">📁 سجل التحويلات</h3>
+      <div class="history-list" id="historyList">
+        <div class="history-empty">مفيش تحويلات لسه</div>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <h3 class="sidebar-title">📊 إحصائيات الشهر</h3>
+      <div class="monthly-stats" id="monthlyStats">
+        <div class="m-stat">
+          <span class="m-label">الملفات</span>
+          <span class="m-value" id="monthFiles">0</span>
+        </div>
+        <div class="m-stat">
+          <span class="m-label">الحجم الكلي</span>
+          <span class="m-value" id="monthSize">0 MB</span>
+        </div>
+        <div class="m-stat">
+          <span class="m-label">المدة</span>
+          <span class="m-value" id="monthDuration">0 دقيقة</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar-footer">
+      <button class="sidebar-btn logout" id="logoutBtn">
+        <span>🚪</span> تسجيل الخروج
+      </button>
+    </div>
+  </aside>
+
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="nav-left">
+      <button class="sidebar-toggle" id="sidebarToggle" aria-label="القائمة">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="3" y1="6" x2="21" y2="6"/>
+          <line x1="3" y1="12" x2="21" y2="12"/>
+          <line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </button>
+      <div class="nav-brand">
+        <div class="logo-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+            <path d="M2 17l10 5 10-5"/>
+            <path d="M2 12l10 5 10-5"/>
+          </svg>
+        </div>
+        <span class="logo-text">Caption<span class="logo-accent">AI</span></span>
+      </div>
+    </div>
+    <div class="nav-right">
+      <div class="user-chip" id="userChip" style="display:none;">
+        <span class="user-chip-name" id="userChipName">-</span>
+        <div class="user-chip-avatar" id="userChipAvatar">👤</div>
+      </div>
+      <button class="theme-toggle" id="themeToggle" aria-label="تبديل الوضع">
+        <span class="theme-icon sun">☀️</span>
+        <span class="theme-icon moon">🌙</span>
+        <div class="theme-slider"></div>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-content">
+      <div class="hero-badge">
+        <span class="badge-dot"></span>
+        مجاني تماماً
+      </div>
+      <h1 class="hero-title">
+        حوّل صوت الفيديو لـ
+        <span class="gradient-text">كابشن احترافي</span>
+        بلحظة
+      </h1>
+      <p class="hero-desc">
+        استخدم أقوى نماذج الذكاء الاصطناعي لتحويل أي فيديو لملف ترجمة SRT/VTT بدقة عالية.
+        يدعم العربية والإنجليزية وأكتر من 50 لغة.
+      </p>
+      <div class="hero-stats">
+        <div class="stat-item">
+          <span class="stat-num" id="globalVisitors">...</span>
+          <span class="stat-label">زائر</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-num">99%</span>
+          <span class="stat-label">دقة التعرف</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-num">0ج</span>
+          <span class="stat-label">تكلفة</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main App -->
+  <main class="app-container">
+    <div class="card upload-card" id="uploadCard">
+      <div class="card-header">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+            <polyline points="17 8 12 3 7 8"/>
+            <line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+        </div>
+        <h2 class="card-title">ارفع الفيديو</h2>
+        <p class="card-subtitle">اسحب الملف هنا أو اضغط للاختيار</p>
+      </div>
+
+      <div class="upload-zone" id="uploadZone">
+        <input type="file" id="fileInput" accept="video/*,audio/*" hidden>
+        <div class="upload-content">
+          <div class="upload-illustration">
+            <div class="upload-circle">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <rect x="2" y="2" width="20" height="20" rx="5"/>
+                <circle cx="8.5" cy="8.5" r="1.5"/>
+                <path d="M21 15l-5-5L5 21"/>
+              </svg>
+            </div>
+            <div class="upload-pulse"></div>
+          </div>
+          <p class="upload-text">اسحب الفيديو هنا</p>
+          <p class="upload-hint">MP4, MOV, AVI, MKV, WEBM, MP3, WAV</p>
+          <p class="upload-size">الحد الأقصى: 500 ميجا</p>
+        </div>
+      </div>
+
+      <div class="file-preview" id="filePreview" style="display: none;">
+        <div class="file-info">
+          <div class="file-icon">🎬</div>
+          <div class="file-details">
+            <span class="file-name" id="fileName"></span>
+            <span class="file-size" id="fileSize"></span>
+          </div>
+        </div>
+        <button class="file-remove" id="fileRemove">✕</button>
+      </div>
+    </div>
+
+    <div class="card settings-card">
+      <div class="card-header">
+        <div class="card-icon small">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.68 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/>
+          </svg>
+        </div>
+        <h2 class="card-title">الإعدادات</h2>
+      </div>
+
+      <div class="settings-grid">
+        <div class="setting-item">
+          <label class="setting-label">لغة الصوت</label>
+          <div class="select-wrapper">
+            <select id="languageSelect" class="setting-select">
+              <option value="auto">🔍 اكتشاف تلقائي</option>
+              <option value="ar" selected>🇸🇦 العربية</option>
+              <option value="en">🇺🇸 English</option>
+              <option value="fr">🇫🇷 Français</option>
+              <option value="es">🇪🇸 Español</option>
+              <option value="de">🇩🇪 Deutsch</option>
+              <option value="it">🇮🇹 Italiano</option>
+              <option value="pt">🇵🇹 Português</option>
+              <option value="ru">🇷🇺 Русский</option>
+              <option value="zh">🇨🇳 中文</option>
+              <option value="ja">🇯🇵 日本語</option>
+              <option value="ko">🇰🇷 한국어</option>
+              <option value="tr">🇹🇷 Türkçe</option>
+              <option value="hi">🇮🇳 हिन्दी</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="setting-item">
+          <label class="setting-label">صيغة الإخراج</label>
+          <div class="format-chips">
+            <button class="format-chip active" data-format="all">الكل</button>
+            <button class="format-chip" data-format="srt">SRT</button>
+            <button class="format-chip" data-format="vtt">VTT</button>
+            <button class="format-chip" data-format="txt">TXT</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <button class="generate-btn" id="generateBtn" disabled>
+      <span class="btn-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+        </svg>
+      </span>
+      <span class="btn-text">توليد الكابشن</span>
+      <div class="btn-shine"></div>
+    </button>
+
+    <div class="progress-section" id="progressSection" style="display: none;">
+      <div class="progress-card">
+        <div class="progress-header">
+          <div class="progress-status">
+            <div class="spinner"></div>
+            <span id="progressStatus">جاري رفع الملف...</span>
+          </div>
+          <span class="progress-percent" id="progressPercent">0%</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" id="progressFill"></div>
+          <div class="progress-shimmer"></div>
+        </div>
+        <div class="progress-steps">
+          <div class="step active" id="step1"><div class="step-dot"></div><span>الرفع</span></div>
+          <div class="step" id="step2"><div class="step-dot"></div><span>استخراج الصوت</span></div>
+          <div class="step" id="step3"><div class="step-dot"></div><span>الذكاء الاصطناعي</span></div>
+          <div class="step" id="step4"><div class="step-dot"></div><span>التجهيز</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="results-section" id="resultsSection" style="display: none;">
+      <div class="results-card">
+        <div class="results-header">
+          <div class="success-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+          </div>
+          <h3 class="results-title">تم بنجاح! 🎉</h3>
+          <p class="results-meta" id="resultsMeta">اللغة: العربية | المدة: 2:30</p>
+        </div>
+
+        <div class="preview-box">
+          <div class="preview-header">
+            <span class="preview-label">معاينة الكابشن</span>
+            <span class="preview-count" id="previewCount">15 جملة</span>
+          </div>
+          <div class="preview-content" id="previewContent"></div>
+        </div>
+
+        <div class="download-grid">
+          <a href="#" class="download-btn primary" id="downloadSrt" download>
+            <span class="dl-icon">📄</span>
+            <div class="dl-info">
+              <span class="dl-name">تحميل SRT</span>
+              <span class="dl-desc">لـ Premiere, VLC, YouTube</span>
+            </div>
+          </a>
+          <a href="#" class="download-btn" id="downloadVtt" download>
+            <span class="dl-icon">🌐</span>
+            <div class="dl-info">
+              <span class="dl-name">تحميل VTT</span>
+              <span class="dl-desc">لـ المواقع والمتصفحات</span>
+            </div>
+          </a>
+          <a href="#" class="download-btn" id="downloadTxt" download>
+            <span class="dl-icon">📝</span>
+            <div class="dl-info">
+              <span class="dl-name">تحميل نص</span>
+              <span class="dl-desc">نص عادي بدون توقيت</span>
+            </div>
+          </a>
+        </div>
+
+        <button class="reset-btn" id="resetBtn">
+          <span>↻</span> توليد كابشن جديد
+        </button>
+      </div>
+    </div>
+
+    <div class="error-section" id="errorSection" style="display: none;">
+      <div class="error-card">
+        <div class="error-icon">⚠️</div>
+        <h3 class="error-title">حدث خطأ</h3>
+        <p class="error-message" id="errorMessage"></p>
+        <button class="retry-btn" id="retryBtn">إعادة المحاولة</button>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-content">
+      <div class="footer-brand">
+        <span class="logo-text">Caption<span class="logo-accent">AI</span></span>
+        <p>توليد كابشن ذكي بالذكاء الاصطناعي</p>
+      </div>
+      <div class="footer-links">
+        <a href="#" class="footer-link">الرئيسية</a>
+        <a href="#" class="footer-link">كيفية الاستخدام</a>
+        <a href="#" class="footer-link">الخصوصية</a>
+      </div>
+      <p class="footer-copy">© 2026 CaptionAI. مجاني تماماً 💙</p>
+    </div>
+  </footer>
+
+    <!-- Global Loading Overlay -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-box">
+      <div class="loading-spinner"></div>
+      <span class="loading-title" id="loadingTitle">جاري التحميل</span>
+      <div class="loading-track">
+        <div class="loading-fill" id="loadingFill"></div>
+      </div>
+      <span class="loading-text" id="loadingText">انتظر لحظة<span class="loading-dots"></span></span>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+  <script src="js/massage.js"></script>
+</body>
+</html>
